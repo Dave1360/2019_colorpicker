@@ -5,7 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Color Picker</title>
-    <link rel="stylesheet" href="colorpicker.css">
+
+    <style>
+    #imageCanvas {
+    border: 2px solid black;
+    cursor: crosshair;
+    }
+
+    #sidebyside {
+        display: flex;
+    }
+
+    #zoomed {
+        margin-left: 1em;
+    }
+
+    #zoomCanvas {
+        border: 2px solid black;
+
+        width: 160px;
+        image-rendering: pixelated;
+    }
+
+    #colorbox {
+        border: 2px solid black;
+        height: 30px;
+    }
+
+    #colorinfo {
+        font-family: Arial, Helvetica, sans-serif;
+        font-variant-numeric: tabular-nums;
+    }
+
+    #rgb {
+        margin-top: 4px;
+    }
+
+    #rgb span {
+        display: inline-block;
+        width: 4ex;
+        text-align: right;
+    }
+
+    #hex {
+        margin-top: 4px;
+        text-transform: uppercase;
+    }
+    
+    </style>
+
 </head>
 <body>
     <h1>Color Picker</h1>
@@ -29,6 +77,106 @@
         </div>
     </div>
     
-    <script src="colorpicker.js"></script>
+    <script> 
+    "use strict";
+
+    let canvas = document.querySelector("#imageCanvas");
+    let context = canvas.getContext('2d');
+
+    let zoomCanvas = document.querySelector("#zoomCanvas");
+    let zoomContext = zoomCanvas.getContext('2d');
+
+    let baseImage;
+    let zoomImage;
+    let imgData;
+    let zoomData;
+    let pixelInfo;
+    let r,g,b;
+
+    document.addEventListener("DOMContentLoaded", init);
+
+    function init() {
+        baseImage = new Image();
+        baseImage.src = 'cat.jpg';
+        baseImage.addEventListener("load", drawImage);
+  
+}
+
+    function drawImage() {
+        console.log("DrawImage");
+        context.drawImage(baseImage, 0, 0);
+        imageData();
+        document.querySelector("#imageCanvas").addEventListener("mousemove", mouseMoved);
+        
+    }
+
+    function imageData() {
+        imgData = context.getImageData(0, 0, 500 ,600);
+        console.log(imgData.data);
+    }
+
+    function mouseMoved(e) {
+        console.log("mouseMoved");
+       let xValue = e.offsetX;
+        let yValue = e.offsetY;
+
+        console.log(xValue, yValue);
+
+        context.putImageData(imgData,0,0);
+        zoom(xValue, yValue);
+        context.strokeStyle = "lightgreen";
+        context.strokeRect(xValue, yValue, 10, 10);
+
+        getColor(xValue, yValue);
+      
+    }
+
+    function getColor(x, y) {
+        console.log(x, y);
+        pixelInfo = 4*(x+y*500);
+        r = imgData.data[pixelInfo];
+        g = imgData.data[pixelInfo +1];
+        b = imgData.data[pixelInfo +2];
+  
+        let rgb = {r, g, b};
+
+        console.log(r, g, b);
+
+        showColorInfo(rgb);
+    
+
+    }
+
+
+// 🎁 Here you go! 🎁
+function showColorInfo( rgb ) {
+
+    document.querySelector("#r").textContent = rgb.r;
+    document.querySelector("#g").textContent = rgb.g;
+    document.querySelector("#b").textContent = rgb.b;
+
+    const hex = "#"+rgb.r.toString(16).padStart(2,"0")
+                   +rgb.g.toString(16).padStart(2,"0")
+                   +rgb.b.toString(16).padStart(2,"0");
+
+    document.querySelector("#hex").textContent = hex;
+
+    document.querySelector("#colorbox").style.backgroundColor = hex;
+}
+
+function zoom(x,y) {
+
+zoomData = context.getImageData(x,y, 10, 10);
+
+zoomContext.drawImage(baseImage,0 ,0 ,10, 10);
+updateZoomImage()
+
+}
+
+function updateZoomImage() {
+    zoomContext.putImageData(zoomData,0,0);
+}
+
+    </script>
 </body>
 </html>
